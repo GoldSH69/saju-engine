@@ -1,0 +1,21 @@
+{
+  "name": "saju-engine",
+  "version": "1.0.0",
+  "description": "사주 계산 엔진",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "ts-node src/saju/__tests__/integration.test.ts",
+    "test:time": "ts-node src/saju/__tests__/timeAdjustment.test.ts",
+    "test:day": "ts-node src/saju/__tests__/dayPillar.test.ts",
+    "test:hour": "ts-node src/saju/__tests__/hourPillar.test.ts",
+    "test:year": "ts-node src/saju/__tests__/yearPillar.test.ts",
+    "test:month": "ts-node src/saju/__tests__/monthPillar.test.ts",
+    "test:all": "ts-node src/saju/__tests__/runAll.test.ts",
+    "test:ym": "ts-node src/saju/__tests__/yearMonth.test.ts",
+    "saju": "ts-node src/saju/interactive.ts",
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
