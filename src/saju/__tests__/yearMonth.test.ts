@@ -79,8 +79,8 @@ runTest('2024-02-04 10:00 (입춘 10:27 전) = 癸卯', () => {
   assertEqual(result.earthlyBranch.char, '卯', '지지')
 })
 
-runTest('2024-02-04 11:00 (입춘 10:27 후) = 甲辰', () => {
-  const result = calculateYearPillar(2024, 2, 4, 11, 0)
+runTest('2024-02-04 18:00 (입춘 17:26 후) = 甲辰', () => {
+  const result = calculateYearPillar(2024, 2, 4, 18, 0)
   assertEqual(result.heavenlyStem.char, '甲', '천간')
   assertEqual(result.earthlyBranch.char, '辰', '지지')
 })
@@ -91,8 +91,8 @@ runTest('1990-02-04 05:00 (입춘 05:46 전) = 己巳', () => {
   assertEqual(result.earthlyBranch.char, '巳', '지지')
 })
 
-runTest('1990-02-04 06:00 (입춘 05:46 후) = 庚午', () => {
-  const result = calculateYearPillar(1990, 2, 4, 6, 0)
+runTest('1990-02-04 12:00 (입춘 11:13 후) = 庚午', () => {
+  const result = calculateYearPillar(1990, 2, 4, 12, 0)
   assertEqual(result.heavenlyStem.char, '庚', '천간')
   assertEqual(result.earthlyBranch.char, '午', '지지')
 })
