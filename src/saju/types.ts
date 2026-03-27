@@ -175,3 +175,52 @@ export interface SajuResult {
     solarTermDateTime: string
   }
 }
+
+// src/saju/types.ts 에 추가할 내용
+
+/** 십성 종류 */
+export type TenStar = 
+  | '비견' | '겁재'    // 비화 (같은 오행)
+  | '식신' | '상관'    // 식상 (내가 생하는)
+  | '편재' | '정재'    // 재성 (내가 극하는)
+  | '편인' | '정인'    // 인성 (나를 생하는)
+  | '편관' | '정관';   // 관성 (나를 극하는)
+
+/** 십성 카테고리 */
+export type TenStarCategory = '비화' | '식상' | '재성' | '인성' | '관성';
+
+/** 개별 십성 정보 */
+export interface TenStarInfo {
+  target: string;           // 대상 천간 (한자)
+  targetKorean: string;     // 대상 천간 (한글)
+  tenStar: TenStar;         // 십성 이름
+  category: TenStarCategory; // 십성 카테고리
+  position: string;         // 위치 (년간, 월간, 시간, 년지장간, 월지장간, 일지장간, 시지장간)
+}
+
+/** 십성 분포 결과 */
+export interface TenStarResult {
+  /** 일간 (기준) */
+  dayStem: string;
+  dayStemKorean: string;
+  
+  /** 각 위치별 십성 */
+  yearStem: TenStarInfo;      // 년간
+  monthStem: TenStarInfo;     // 월간
+  hourStem: TenStarInfo;      // 시간
+  
+  /** 지장간별 십성 */
+  yearBranchStars: TenStarInfo[];    // 년지 지장간 십성
+  monthBranchStars: TenStarInfo[];   // 월지 지장간 십성
+  dayBranchStars: TenStarInfo[];     // 일지 지장간 십성
+  hourBranchStars: TenStarInfo[];    // 시지 지장간 십성
+  
+  /** 모든 십성 목록 (천간 + 지장간) */
+  allStars: TenStarInfo[];
+  
+  /** 십성별 개수 */
+  starCount: Record<TenStar, number>;
+  
+  /** 카테고리별 개수 */
+  categoryCount: Record<TenStarCategory, number>;
+}

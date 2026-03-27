@@ -13,6 +13,9 @@
     "test:all": "ts-node src/saju/__tests__/runAll.test.ts",
     "test:ym": "ts-node src/saju/__tests__/yearMonth.test.ts",
     "test:hidden": "npx ts-node src/saju/__tests__/hiddenStems.test.ts",
+    "test:five": "npx ts-node src/saju/__tests__/fiveElements.test.ts",
+    "test:star": "npx ts-node src/saju/__tests__/tenStars.test.ts",
+    "test:strength": "npx ts-node src/saju/__tests__/strengthScore.test.ts",
     "saju": "ts-node src/saju/interactive.ts",
     "generate:terms": "ts-node src/data/generateSolarTerms.ts",
     "build": "tsc"
