@@ -1,226 +1,134 @@
-// src/saju/types.ts
-// 사주 계산에 사용되는 모든 타입을 정의합니다.
+// ============================================================
+// 사주 엔진 타입 정의
+// ============================================================
 
-/**
- * 천간 정보
- */
+// --- 천간 ---
 export interface StemInfo {
-  index: number        // 0~9
-  char: string         // "甲"
-  name: string         // "갑"
-  element: string      // "wood" | "fire" | "earth" | "metal" | "water"
-  elementKo: string    // "목" | "화" | "토" | "금" | "수"
-  yinYang: string      // "yang" | "yin"
-  yinYangKo: string    // "양" | "음"
+  index: number;
+  char: string;
+  name: string;
+  element: string;
+  elementKo: string;
+  yinYang: string;
+  yinYangKo: string;
 }
 
-/**
- * 지지 정보
- */
+// --- 지지 ---
 export interface BranchInfo {
-  index: number        // 0~11
-  char: string         // "子"
-  name: string         // "자"
-  element: string      // "wood" | "fire" | "earth" | "metal" | "water"
-  elementKo: string    // "목" | "화" | "토" | "금" | "수"
-  yinYang: string      // "yang" | "yin"
-  yinYangKo: string    // "양" | "음"
-  originalTimeRange: string   // "23:00~01:00"
-  adjustedTimeRange: string   // "23:30~01:30"
+  index: number;
+  char: string;
+  name: string;
+  element: string;
+  elementKo: string;
+  yinYang: string;
+  yinYangKo: string;
+  originalTimeRange: string;
+  adjustedTimeRange: string;
 }
 
-/**
- * 하나의 기둥 (천간 + 지지)
- */
+// --- 기둥 (주) ---
 export interface Pillar {
-  heavenlyStem: StemInfo
-  earthlyBranch: BranchInfo
+  heavenlyStem: StemInfo;
+  earthlyBranch: BranchInfo;
 }
 
-/**
- * 지장간 정보
- */
-export interface HiddenStemInfo {
-  stem: StemInfo
-  type: 'residual' | 'middle' | 'main'  // 여기 / 중기 / 본기
-  weight: number                          // 0~1 비율
-}
-
-/**
- * 시간 보정 결과
- */
+// --- 시간 보정 ---
 export interface TimeAdjustmentResult {
-  originalHour: number
-  originalMinute: number
-  adjustedHour: number
-  adjustedMinute: number
-  adjustmentType: 'standard30' | 'trueSolar' | 'none'
-  adjustmentMinutes: number
-  description: string
-  dateChanged: boolean
+  originalHour: number;
+  originalMinute: number;
+  adjustedHour: number;
+  adjustedMinute: number;
+  adjustmentType: 'standard30' | 'trueSolar' | 'none';
+  adjustmentMinutes: number;
+  description: string;
+  dateChanged: boolean;
 }
 
-/**
- * 사주 계산 입력
- */
-export interface SajuInput {
-  solarOrLunar: 'solar' | 'lunar'
-  year: number
-  month: number
-  day: number
-  hour: number | null
-  minute: number | null
-  gender: 'male' | 'female'
-  birthTimeUnknown: boolean
-  leapMonth: boolean
-  timeAdjustment: 'standard30' | 'trueSolar' | 'none'
-  jasiType: 'night' | 'early'
+// --- 신강/신약 상세 항목 ---
+export interface StrengthDetail {
+  position: string;
+  stem: string;
+  stemName: string;
+  tenStar: string;
+  category: string;
+  isSupporting: boolean;
+  weight: number;
+  score: number;
 }
 
-/**
- * 오행 상세
- */
-export interface FiveElementDetail {
-  count: number
-  weightedScore: number
-  percentage: number
-}
-
-/**
- * 오행 분포 전체
- */
-export interface FiveElements {
-  wood: FiveElementDetail
-  fire: FiveElementDetail
-  earth: FiveElementDetail
-  metal: FiveElementDetail
-  water: FiveElementDetail
-  dominant: string
-  weakest: string
-}
-
-/**
- * 십성 상세
- */
-export interface TenGodDetail {
-  name: string
-  nameKo: string
-  count: number
-  positions: string[]
-}
-
-/**
- * 신강/신약 판단 근거
- */
-export interface StrengthFactor {
-  factor: string
-  effect: 'help' | 'restrain'
-  weight: number
-}
-
-/**
- * 신강/신약 판단 결과
- */
+// --- 신강/신약 판단 결과 ---
 export interface StrengthResult {
-  result: 'strong' | 'weak' | 'neutral'
-  score: number
-  helpScore: number
-  restrainScore: number
-  factors: StrengthFactor[]
-  summary: string
+  dayStem: string;
+  dayStemName: string;
+  dayElement: string;
+  dayElementKo: string;
+  deukryeong: boolean;
+  monthBranch: string;
+  monthMainStem: string;
+  monthMainElement: string;
+  supportScore: number;
+  restrainScore: number;
+  totalScore: number;
+  strength: string;
+  strengthLevel: number;
+  details: StrengthDetail[];
+  summary: string;
 }
 
-/**
- * 사주 계산 최종 결과
- */
-export interface SajuResult {
-  input: {
-    solarDate: string
-    lunarDate: string
-    solarOrLunar: string
-    leapMonth: boolean
-    birthTime: string | null
-    birthTimeUnknown: boolean
-    gender: string
-    timeAdjustment: string
-    jasiType: string
-  }
-  timeAdjustmentInfo: TimeAdjustmentResult | null
-  fourPillars: {
-    year: Pillar
-    month: Pillar
-    day: Pillar
-    hour: Pillar | null
-  }
-  hiddenStems: {
-    year: HiddenStemInfo[]
-    month: HiddenStemInfo[]
-    day: HiddenStemInfo[]
-    hour: HiddenStemInfo[] | null
-  }
-  fiveElements: FiveElements
-  tenGods: Record<string, TenGodDetail>
-  dayMaster: {
-    stem: string
-    name: string
-    element: string
-    yinYang: string
-    description: string
-  }
-  strength: StrengthResult
-  meta: {
-    calculatedAt: string
-    engineVersion: string
-    solarTermUsed: string
-    solarTermDateTime: string
-  }
-}
+// --- (하위호환용 별칭) ---
+export type StrengthFactor = StrengthDetail;
 
-// src/saju/types.ts 에 추가할 내용
+// --- 십성 ---
+export type TenStar = '비견'|'겁재'|'식신'|'상관'|'편재'|'정재'|'편인'|'정인'|'편관'|'정관';
+export type TenStarCategory = '비화'|'식상'|'재성'|'인성'|'관성';
 
-/** 십성 종류 */
-export type TenStar = 
-  | '비견' | '겁재'    // 비화 (같은 오행)
-  | '식신' | '상관'    // 식상 (내가 생하는)
-  | '편재' | '정재'    // 재성 (내가 극하는)
-  | '편인' | '정인'    // 인성 (나를 생하는)
-  | '편관' | '정관';   // 관성 (나를 극하는)
-
-/** 십성 카테고리 */
-export type TenStarCategory = '비화' | '식상' | '재성' | '인성' | '관성';
-
-/** 개별 십성 정보 */
 export interface TenStarInfo {
-  target: string;           // 대상 천간 (한자)
-  targetKorean: string;     // 대상 천간 (한글)
-  tenStar: TenStar;         // 십성 이름
-  category: TenStarCategory; // 십성 카테고리
-  position: string;         // 위치 (년간, 월간, 시간, 년지장간, 월지장간, 일지장간, 시지장간)
+  target: string;
+  targetKorean: string;
+  tenStar: TenStar;
+  category: TenStarCategory;
+  position: string;
 }
 
-/** 십성 분포 결과 */
 export interface TenStarResult {
-  /** 일간 (기준) */
   dayStem: string;
   dayStemKorean: string;
-  
-  /** 각 위치별 십성 */
-  yearStem: TenStarInfo;      // 년간
-  monthStem: TenStarInfo;     // 월간
-  hourStem: TenStarInfo;      // 시간
-  
-  /** 지장간별 십성 */
-  yearBranchStars: TenStarInfo[];    // 년지 지장간 십성
-  monthBranchStars: TenStarInfo[];   // 월지 지장간 십성
-  dayBranchStars: TenStarInfo[];     // 일지 지장간 십성
-  hourBranchStars: TenStarInfo[];    // 시지 지장간 십성
-  
-  /** 모든 십성 목록 (천간 + 지장간) */
+  yearStem: TenStarInfo;
+  monthStem: TenStarInfo;
+  hourStem: TenStarInfo;
+  yearBranchStars: TenStarInfo[];
+  monthBranchStars: TenStarInfo[];
+  dayBranchStars: TenStarInfo[];
+  hourBranchStars: TenStarInfo[];
   allStars: TenStarInfo[];
-  
-  /** 십성별 개수 */
   starCount: Record<TenStar, number>;
-  
-  /** 카테고리별 개수 */
   categoryCount: Record<TenStarCategory, number>;
 }
+
+// --- 지장간 ---
+export interface HiddenStemEntry {
+  char: string;
+  index: number;
+  role: string;
+  roleName: string;
+  days: number;
+}
+
+// --- 오행 분석 ---
+export interface FiveElementCount {
+  wood: number;
+  fire: number;
+  earth: number;
+  metal: number;
+  water: number;
+}
+
+export interface FiveElementAnalysis {
+  counts: FiveElementCount;
+  dominant: string;
+  weak: string;
+  missing: string[];
+  balance: string;
+}
+
+export type HiddenStemInfo = HiddenStemEntry;

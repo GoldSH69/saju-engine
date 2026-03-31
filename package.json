@@ -18,6 +18,10 @@
     "test:strength": "npx ts-node src/saju/__tests__/strengthScore.test.ts",
     "saju": "ts-node src/saju/interactive.ts",
     "generate:terms": "ts-node src/data/generateSolarTerms.ts",
+    "test:daewoon": "npx ts-node src/saju/__tests__/daewoon.test.ts",
+    "test:fortune": "npx ts-node src/saju/__tests__/fortune.test.ts",
+    "test:yongsin": "npx ts-node src/saju/__tests__/yongsin.test.ts",
+    "test:calc": "npx ts-node src/saju/__tests__/calculate.test.ts",
     "build": "tsc"
   },
   "keywords": [],
