@@ -27,6 +27,8 @@ import {
   YearlyFortuneResult, MonthlyFortuneResult, DailyFortuneResult,
 } from './fortune'
 import { calculateYongsin, YongsinResult, YongsinMethod, YongsinOptions } from './yongsin'
+import { analyzeGongmang, GongmangAnalysis } from './gongmang'
+import { analyzeGwiin, GwiinAnalysis } from './gwiin'
 
 // ─── 일주 계산 헬퍼 (JDN 기반) ──────────────────────────
 
@@ -117,6 +119,8 @@ export interface CalculateResult {
   yongsin: YongsinResult
   daewoon: DaewoonResult | null
   fortune: FortuneResult | null
+  gongmang: GongmangAnalysis | null
+  gwiin: GwiinAnalysis | null
   monthSolarTerm: {
     name: string
     dateTime: string
@@ -431,6 +435,24 @@ export function calculateSaju(input: CalculateInput): CalculateResult {
       { count: input.daewoonCount ?? 10 }
     )
   }
+  // ═══ ⑬-2 공망 분석 ═══
+  const gongmang = analyzeGongmang(
+    yearPillar.heavenlyStem.index,
+    yearPillar.earthlyBranch.index,
+    monthPillar.earthlyBranch.index,
+    dayStemIndex,
+    dayPillar.earthlyBranch.index,
+    hourPillar ? hourPillar.earthlyBranch.index : null
+  )
+
+  // ═══ ⑬-3 천을귀인 분석 ═══
+  const gwiin = analyzeGwiin(
+    dayStemIndex,
+    yearPillar.earthlyBranch.index,
+    monthPillar.earthlyBranch.index,
+    dayPillar.earthlyBranch.index,
+    hourPillar ? hourPillar.earthlyBranch.index : null
+  )
 
   // ═══ ⑭ 운세 (선택) ═══
   let fortune: FortuneResult | null = null
@@ -507,6 +529,8 @@ export function calculateSaju(input: CalculateInput): CalculateResult {
     yongsin,
     daewoon,
     fortune,
+    gongmang,
+    gwiin,
     monthSolarTerm: {
       name: monthResult.solarTermName,
       dateTime: monthResult.solarTermDateTime,
@@ -599,6 +623,19 @@ export function formatSajuResult(result: CalculateResult): string {
       `${e.ganjiChar}(${e.startAge}~${e.endAge})`
     ).join(' → ')
     lines.push(`    ${dwLine}`)
+    lines.push('')
+  }
+    // 공망 출력
+  if (result.gongmang) {
+    lines.push('  ■ 공망(空亡):')
+    result.gongmang.summary.forEach(s => lines.push(`    ${s}`))
+    lines.push('')
+  }
+
+  // 천을귀인 출력
+  if (result.gwiin) {
+    lines.push('  ■ 천을귀인(天乙貴人):')
+    result.gwiin.summary.forEach(s => lines.push(`    ${s}`))
     lines.push('')
   }
 
@@ -694,6 +731,31 @@ export function toResultJson(result: CalculateResult): object {
         endYear: e.endYear,
         tenStar: e.tenStar,
       })),
+    } : null,
+        gongmang: result.gongmang ? {
+      yearGongmang: {
+        sunName: result.gongmang.yearGongmang.sunName,
+        chars: result.gongmang.yearGongmang.chars,
+        names: result.gongmang.yearGongmang.names,
+      },
+      dayGongmang: {
+        sunName: result.gongmang.dayGongmang.sunName,
+        chars: result.gongmang.dayGongmang.chars,
+        names: result.gongmang.dayGongmang.names,
+      },
+      branchStatus: result.gongmang.branchStatus,
+      summary: result.gongmang.summary,
+    } : null,
+    gwiin: result.gwiin ? {
+      gwiinPair: {
+        chars: result.gwiin.gwiinPair.chars,
+        names: result.gwiin.gwiinPair.names,
+        elements: result.gwiin.gwiinPair.elements,
+      },
+      branchStatus: result.gwiin.branchStatus,
+      gwiinCount: result.gwiin.gwiinCount,
+      gwiinPositions: result.gwiin.gwiinPositions,
+      summary: result.gwiin.summary,
     } : null,
     monthSolarTerm: result.monthSolarTerm,
     meta: result.meta,

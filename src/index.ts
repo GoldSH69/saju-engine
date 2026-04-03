@@ -87,3 +87,64 @@ export type {
   FortuneTenStar,
 } from './saju/interactions'
 export { analyzeInteractions } from './saju/interactions'
+
+// ─── 공망(空亡) ─────────────────────────────────────────
+export {
+  calculateGongmangPair,
+  isGongmang,
+  analyzeGongmang,
+  checkFortuneGongmang,
+} from './saju/gongmang'
+
+export type {
+  GongmangPair,
+  BranchGongmangStatus,
+  GongmangRelease,
+  FortuneGongmangResult,
+  GongmangAnalysis,
+} from './saju/gongmang'
+
+// ─── 천을귀인(天乙貴人) ─────────────────────────────────
+export {
+  getGwiinBranches,
+  isGwiin,
+  analyzeGwiin,
+  checkFortuneGwiin,
+} from './saju/gwiin'
+
+export type {
+  GwiinPair,
+  BranchGwiinStatus,
+  FortuneGwiinResult,
+  GwiinAnalysis,
+} from './saju/gwiin'
+
+
+// ─── 해석 템플릿 ────────────────────────────────────────
+export {
+  generateInterpretation,
+  getDayStemText,
+  getFiveElementText,
+  analyzeFiveElementTexts,
+  getTenStarText,
+  analyzeTenStarTexts,
+  getStrengthText,
+  getDailyFortuneText,
+  getShortDayStemInterpretation,
+  getShortStrengthInterpretation,
+  getShortDailyFortune,
+  DAY_STEM_TEXTS,
+  FIVE_ELEMENT_TEXTS,
+  TEN_STAR_TEXTS,
+  STRENGTH_TEXTS,
+  DAILY_FORTUNE_TEXTS,
+} from './saju/interpretations'
+
+export type {
+  InterpretationResult,
+  DayStemText,
+  FiveElementText,
+  TenStarText,
+  StrengthText,
+  DailyFortuneText,
+} from './saju/interpretations'
