@@ -37,8 +37,15 @@ export interface CompatibilityItem {
   score: number           // 획득 점수
   maxScore: number        // 만점
   grade: string           // A/B/C/D/F
-  description: string     // 한줄 요약
-  details: string[]       // 상세 설명 배열
+  description: string     // 한줄 요약 (무료)
+  details: string[]       // 기본 설명 배열 (무료)
+  /** 광고 후 상세 해석 (blur 영역) */
+  detailedAnalysis: {
+    interpretation: string   // 심층 해석
+    relationship: string     // 관계 역학
+    advice: string           // 맞춤 조언
+    keywords: string[]       // 키워드 3개
+  }
 }
 
 /** 궁합 종합 결과 */
@@ -178,6 +185,11 @@ function analyzeDayElementCompatibility(
 
   const score = Math.min(baseScore + yinYangBonus, 25)
 
+    // 상세 해석 생성
+  const detailedAnalysis = generateDayElementDetailed(
+    el1, el2, ko1, ko2, name1, name2, yy1, yy2, relationDesc, score
+  )
+
   return {
     category: '일간 오행 궁합',
     score,
@@ -185,7 +197,50 @@ function analyzeDayElementCompatibility(
     grade: itemGrade(score, 25),
     description: `${name1}(${ko1}) ↔ ${name2}(${ko2}): ${relationDesc}`,
     details,
+    detailedAnalysis,
   }
+}
+
+function generateDayElementDetailed(
+  el1: string, el2: string, ko1: string, ko2: string,
+  name1: string, name2: string, yy1: string, yy2: string,
+  relation: string, score: number
+): CompatibilityItem['detailedAnalysis'] {
+  let interpretation = ''
+  let relationship = ''
+  let advice = ''
+  const keywords: string[] = []
+
+  if (el1 === el2) {
+    interpretation = `${name1}과 ${name2}은 같은 ${ko1} 오행으로, 서로의 생각과 가치관을 본능적으로 이해합니다. 말하지 않아도 통하는 편안함이 있지만, 같은 성향이 강해 새로운 자극이 부족할 수 있습니다. 장기적으로는 외부 활동이나 취미를 통해 신선한 에너지를 보충하는 것이 좋습니다.`
+    relationship = `비화 관계는 동료 의식이 강합니다. 서로를 경쟁자가 아닌 동반자로 인식할 때 최고의 시너지를 냅니다. 의견 충돌 시 제3자의 중재가 도움됩니다.`
+    advice = `같은 오행끼리는 안정적이지만 정체될 수 있으니, 함께 새로운 경험을 도전하세요.`
+    keywords.push('동질감', '안정', '자극 보충')
+  } else if (GENERATES[el1] === el2 || GENERATES[el2] === el1) {
+    const giver = GENERATES[el1] === el2 ? name1 : name2
+    const receiver = GENERATES[el1] === el2 ? name2 : name1
+    interpretation = `상생 관계로, ${giver}이 자연스럽게 ${receiver}을 돕고 성장시키는 흐름입니다. 이 관계에서는 주는 쪽이 지치지 않도록 받는 쪽의 감사와 배려가 중요합니다. 오행의 생함은 부모가 자식을 키우는 것과 같은 자연스러운 에너지 흐름입니다.`
+    relationship = `상생은 가장 자연스러운 오행 관계입니다. ${giver}은 베푸는 역할, ${receiver}은 성장하는 역할로 서로 보완합니다. 단, 역할이 고정되면 한쪽이 부담을 느낄 수 있으니 때로는 역할을 바꿔보세요.`
+    advice = `${receiver}은 ${giver}의 도움에 감사를 표현하고, ${giver}은 자신의 에너지 관리를 잊지 마세요.`
+    keywords.push('상생', '성장', '보완')
+  } else {
+    const attacker = OVERCOMES[el1] === el2 ? name1 : name2
+    const defender = OVERCOMES[el1] === el2 ? name2 : name1
+    interpretation = `상극 관계로, ${attacker}의 기운이 ${defender}을 억제하는 구조입니다. 이는 갈등을 의미하기도 하지만, 서로를 단련시키는 긴장감이 되기도 합니다. 상극을 잘 활용하면 서로의 약점을 보완하는 발전적 관계가 됩니다.`
+    relationship = `상극은 긴장 관계이지만 모든 상극이 나쁜 것은 아닙니다. 적절한 견제는 서로를 성장시킵니다. ${attacker}은 주도하려는 성향을 자제하고, ${defender}은 위축되지 않도록 자기 목소리를 내는 것이 중요합니다.`
+    advice = `서로의 다름을 인정하고, 갈등 시 감정보다 이성으로 대화하세요. 공통 목표를 세우면 힘이 합쳐집니다.`
+    keywords.push('긴장', '단련', '소통')
+  }
+
+  // 음양 조화 추가
+  if (yy1 !== yy2) {
+    interpretation += ` 음양이 다르기 때문에 자연스러운 끌림이 있으며, 서로 부족한 면을 보완하는 관계입니다.`
+    keywords.push('음양 조화')
+  } else {
+    interpretation += ` 음양이 같아 편안하고 안정적이지만, 관계에 변화와 새로움을 의식적으로 만들어가야 합니다.`
+  }
+
+  return { interpretation, relationship, advice, keywords: keywords.slice(0, 3) }
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -247,6 +302,11 @@ function analyzeYongsinComplement(
 
   const score = Math.min(p1Score + p2Score, 20)
 
+    const detailedAnalysis = generateYongsinDetailed(
+    name1, name2, p1Role?.role, p2Role?.role,
+    person1.dayStem.elementKo, person2.dayStem.elementKo, score
+  )
+
   return {
     category: '용신 보완',
     score,
@@ -254,7 +314,49 @@ function analyzeYongsinComplement(
     grade: itemGrade(score, 20),
     description: `용신 보완: ${p1Role?.role || '?'} ↔ ${p2Role?.role || '?'}`,
     details,
+    detailedAnalysis,
   }
+}
+
+function generateYongsinDetailed(
+  name1: string, name2: string,
+  role1?: string, role2?: string,
+  elKo1?: string, elKo2?: string,
+  score?: number
+): CompatibilityItem['detailedAnalysis'] {
+  const r1 = role1 || '한신'
+  const r2 = role2 || '한신'
+
+  let interpretation = ''
+  let relationship = ''
+  let advice = ''
+  const keywords: string[] = []
+
+  if (r1 === '용신' || r2 === '용신') {
+    const lucky = r1 === '용신' ? name2 : name1
+    const receiver = r1 === '용신' ? name1 : name2
+    interpretation = `${lucky}의 오행이 ${receiver}에게 용신(가장 필요한 기운)으로 작용합니다. 이는 만나는 것만으로도 ${receiver}에게 큰 힘이 되는 관계입니다. 사주명리학에서 용신을 채워주는 사람은 인생의 귀인과도 같습니다.`
+    relationship = `용신 보완은 궁합에서 가장 중요한 요소 중 하나입니다. ${receiver}은 ${lucky}과 함께할 때 운이 트이고 일이 잘 풀리는 경험을 하게 됩니다.`
+    advice = `이 귀한 인연을 소중히 여기세요. ${receiver}은 ${lucky}에게 충분한 감사를 표현하고, ${lucky}은 자신의 역할에 보람을 느끼세요.`
+    keywords.push('귀인', '용신 보완', '행운')
+  } else if (r1 === '희신' || r2 === '희신') {
+    interpretation = `상대의 오행이 희신(용신을 돕는 기운)으로 작용합니다. 직접적인 용신은 아니지만, 간접적으로 필요한 기운을 보충해주는 좋은 관계입니다.`
+    relationship = `희신 관계는 함께하면 자연스럽게 운이 좋아지는 관계입니다. 큰 변화보다는 일상에서 서서히 긍정적 영향을 미칩니다.`
+    advice = `서로의 장점을 인정하고, 함께하는 시간을 꾸준히 만드세요.`
+    keywords.push('희신', '간접 보완', '안정')
+  } else if (r1 === '기신' || r2 === '기신') {
+    interpretation = `상대의 오행이 기신(방해하는 기운)으로 작용할 수 있습니다. 이는 함께할 때 피로감이나 부담을 느낄 수 있다는 의미입니다. 하지만 의식적인 노력으로 충분히 극복할 수 있습니다.`
+    relationship = `기신 관계는 서로에게 스트레스를 줄 수 있지만, 이를 인지하고 있으면 오히려 자기 성장의 계기가 됩니다.`
+    advice = `함께 있을 때 무리하지 말고, 각자의 시간과 공간을 존중하세요.`
+    keywords.push('기신', '보완 필요', '성장')
+  } else {
+    interpretation = `용신 보완 측면에서 특별히 강한 영향은 없는 관계입니다. 서로의 오행이 한신(중립) 역할로, 큰 도움도 큰 방해도 없이 무난합니다.`
+    relationship = `중립적 관계는 안정적이지만, 특별한 시너지를 기대하기는 어렵습니다. 다른 궁합 요소에서 보완이 필요합니다.`
+    advice = `서로에게 필요한 오행을 함께 채울 수 있는 활동(여행, 운동 등)을 찾아보세요.`
+    keywords.push('중립', '무난', '활동 보완')
+  }
+
+  return { interpretation, relationship, advice, keywords: keywords.slice(0, 3) }
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -314,7 +416,11 @@ function analyzeTenStarCompatibility(
     details.push('⚡ 겁재-겁재: 경쟁적 관계로, 각자의 영역을 존중해야 합니다.')
   }
 
-  const score = Math.min(score1.score + score2.score, 20)
+    const score = Math.min(score1.score + score2.score, 20)
+
+  const detailedAnalysis = generateTenStarDetailed(
+    name1, name2, star1to2.star, star2to1.star, score
+  )
 
   return {
     category: '십성 궁합',
@@ -323,7 +429,78 @@ function analyzeTenStarCompatibility(
     grade: itemGrade(score, 20),
     description: `${name1}→${star1to2.star} / ${name2}→${star2to1.star}`,
     details,
+    detailedAnalysis,
   }
+}
+
+function generateTenStarDetailed(
+  name1: string, name2: string,
+  star1: string, star2: string, score: number
+): CompatibilityItem['detailedAnalysis'] {
+  const starTexts: Record<string, { interp: string; rel: string }> = {
+    '정재': {
+      interp: '안정적이고 헌신적인 내조형 파트너입니다. 경제적 안정감과 가정적인 분위기를 만들어줍니다.',
+      rel: '정재는 전통적으로 가장 이상적인 배우자상으로, 믿음직하고 성실한 관계를 만들어갑니다.'
+    },
+    '정관': {
+      interp: '존경과 신뢰를 바탕으로 한 관계입니다. 사회적 체면과 도덕적 기준을 중시하는 파트너입니다.',
+      rel: '정관은 나를 바르게 이끌어주는 존재로, 서로 예의와 존중을 지키는 관계입니다.'
+    },
+    '편재': {
+      interp: '자유롭고 활동적인 에너지를 가진 파트너입니다. 함께 있으면 새로운 경험과 즐거움이 많습니다.',
+      rel: '편재는 변화를 즐기는 성향으로, 일상에 활력을 불어넣지만 안정감이 부족할 수 있습니다.'
+    },
+    '편관': {
+      interp: '강렬한 끌림과 카리스마가 있는 관계입니다. 열정적이지만 주도권 다툼이 생길 수 있습니다.',
+      rel: '편관은 나를 긴장시키는 존재로, 적절한 긴장감이 관계를 성장시키지만 과하면 스트레스가 됩니다.'
+    },
+    '식신': {
+      interp: '편안하고 즐거운 관계입니다. 함께 맛있는 것을 먹고 여유를 즐기는 감성적 파트너입니다.',
+      rel: '식신은 나의 표현력과 창의성을 자극하는 관계로, 예술적 취미를 함께 즐기면 더 좋습니다.'
+    },
+    '상관': {
+      interp: '매력적이고 재능 있는 파트너이지만, 감정 기복과 비판적 성향에 주의해야 합니다.',
+      rel: '상관은 나의 틀을 깨뜨리는 존재로, 자유로운 표현을 허용해야 관계가 유지됩니다.'
+    },
+    '정인': {
+      interp: '따뜻하게 보살펴주는 어머니 같은 파트너입니다. 정서적 안정감과 학문적 교류가 있습니다.',
+      rel: '정인은 나를 돌봐주는 존재로, 편안하지만 때로는 간섭으로 느껴질 수 있습니다.'
+    },
+    '편인': {
+      interp: '독특한 사고방식을 가진 파트너로, 정서적 교류는 깊지만 현실적 문제에서 갈등이 생길 수 있습니다.',
+      rel: '편인은 내면의 세계를 공유하는 관계이지만, 지나친 의존은 서로를 답답하게 만듭니다.'
+    },
+    '비견': {
+      interp: '친구 같은 동료 관계입니다. 대등한 위치에서 서로를 이해하지만 낭만적 감정은 약할 수 있습니다.',
+      rel: '비견은 나와 대등한 존재로, 공정한 관계를 추구하지만 경쟁 의식이 생길 수 있습니다.'
+    },
+    '겁재': {
+      interp: '경쟁적 에너지가 강한 관계입니다. 서로 자극을 주지만 양보와 타협이 어려울 수 있습니다.',
+      rel: '겁재는 나의 것을 빼앗을 수 있는 존재로, 재정과 영역을 명확히 구분하는 것이 좋습니다.'
+    },
+  }
+
+  const t1 = starTexts[star1] || { interp: '특별한 해석 없음', rel: '일반적 관계' }
+  const t2 = starTexts[star2] || { interp: '특별한 해석 없음', rel: '일반적 관계' }
+
+  const interpretation =
+    `${name1}에게 ${name2}은 ${star1}로 작용합니다. ${t1.interp} ` +
+    `반대로 ${name2}에게 ${name1}은 ${star2}로 작용합니다. ${t2.interp}`
+
+  const relationship = `${name1} 관점: ${t1.rel} ${name2} 관점: ${t2.rel}`
+
+  let advice = ''
+  if (score >= 16) {
+    advice = '십성 궁합이 매우 좋습니다. 서로의 역할이 자연스럽게 맞아떨어지니 그 흐름을 유지하세요.'
+  } else if (score >= 10) {
+    advice = '십성 관계가 무난합니다. 서로에게 기대하는 역할을 솔직하게 이야기하면 더 좋아집니다.'
+  } else {
+    advice = '십성 관계에서 마찰이 예상됩니다. 역할 기대를 줄이고, 있는 그대로의 모습을 받아들이세요.'
+  }
+
+  const keywords: string[] = [star1, star2, score >= 14 ? '조화' : score >= 8 ? '무난' : '노력']
+
+  return { interpretation, relationship, advice, keywords }
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -455,6 +632,10 @@ function analyzeDayBranchCompatibility(
     details.push('특별한 충합형해 관계는 없습니다. 무난한 관계입니다.')
   }
 
+    const detailedAnalysis = generateDayBranchDetailed(
+    char1, char2, name1ko, name2ko, score
+  )
+
   return {
     category: '일지 궁합',
     score,
@@ -462,7 +643,47 @@ function analyzeDayBranchCompatibility(
     grade: itemGrade(score, 25),
     description: `${char1}(${name1ko}) ↔ ${char2}(${name2ko})`,
     details,
+    detailedAnalysis,
   }
+}
+
+function generateDayBranchDetailed(
+  char1: string, char2: string,
+  name1ko: string, name2ko: string, score: number
+): CompatibilityItem['detailedAnalysis'] {
+  let interpretation = ''
+  let relationship = ''
+  let advice = ''
+  const keywords: string[] = []
+
+  if (score >= 23) {
+    interpretation = `${char1}(${name1ko})과 ${char2}(${name2ko})은 육합 관계로, 배우자궁에서 가장 이상적인 조합입니다. 육합은 두 지지가 만나 새로운 오행을 만들어내는 화학적 결합으로, 서로 만나면 1+1=3 이상의 시너지가 발생합니다. 결혼 궁합에서 일지 육합은 최고의 인연으로 봅니다.`
+    relationship = `육합 관계는 처음 만났을 때부터 오래 알고 지낸 듯한 친밀감을 느낍니다. 생활 습관과 가치관이 자연스럽게 맞아 갈등이 적고, 함께하는 일상이 편안합니다.`
+    advice = `이 귀한 인연을 당연하게 여기지 마세요. 감사하는 마음을 유지하면 더욱 깊은 관계로 발전합니다.`
+    keywords.push('육합', '최상의 인연', '자연스러운 조화')
+  } else if (score >= 18) {
+    interpretation = `${char1}(${name1ko})과 ${char2}(${name2ko})은 삼합(반합) 관계로, 협력적이고 조화로운 조합입니다. 삼합은 같은 오행의 기운을 공유하는 관계로, 공통된 목표를 향해 함께 나아가는 힘이 있습니다.`
+    relationship = `삼합 관계는 비전과 방향성이 비슷하여 인생의 동반자로 적합합니다. 큰 결정을 함께 할 때 의견이 잘 맞습니다.`
+    advice = `공동 프로젝트나 목표를 세우면 관계가 더 단단해집니다.`
+    keywords.push('삼합', '협력', '공동 목표')
+  } else if (score >= 13) {
+    interpretation = `${char1}(${name1ko})과 ${char2}(${name2ko})은 특별한 충합 관계가 없어 무난한 조합입니다. 극적인 끌림은 적지만 큰 갈등도 없어 안정적인 관계를 유지할 수 있습니다.`
+    relationship = `무난한 관계는 오히려 장기적으로 유리합니다. 극적인 감정보다 꾸준한 신뢰가 관계를 지탱합니다.`
+    advice = `함께하는 즐거운 추억을 의식적으로 만들어가세요.`
+    keywords.push('무난', '안정', '꾸준함')
+  } else if (score >= 6) {
+    interpretation = `${char1}(${name1ko})과 ${char2}(${name2ko}) 사이에 형(刑) 또는 해(害) 관계가 있습니다. 이는 은근한 마찰과 스트레스를 유발할 수 있는 구조입니다. 하지만 서로의 패턴을 이해하면 충분히 극복할 수 있습니다.`
+    relationship = `형해 관계는 겉으로 드러나지 않는 갈등이 쌓일 수 있습니다. 작은 불만도 미루지 말고 바로 소통하는 것이 중요합니다.`
+    advice = `주기적으로 서로의 감정을 확인하는 대화 시간을 만드세요.`
+    keywords.push('형해', '소통 필요', '인내')
+  } else {
+    interpretation = `${char1}(${name1ko})과 ${char2}(${name2ko})은 충(沖) 관계로, 배우자궁에서 가장 강한 충돌이 발생하는 구조입니다. 충은 정반대 에너지의 부딪힘으로, 가치관과 생활 방식에서 근본적인 차이가 있을 수 있습니다. 하지만 충은 반드시 나쁜 것만은 아닙니다 — 서로 다른 관점이 새로운 시야를 열어줄 수도 있습니다.`
+    relationship = `충 관계는 초반에 강한 끌림을 느끼지만 함께 살면 갈등이 잦을 수 있습니다. 각자의 독립적 공간과 시간을 보장하는 것이 핵심입니다.`
+    advice = `중요한 결정은 감정이 격앙된 상태에서 하지 마세요. 하루 이상 숙고한 후 대화하면 충돌을 줄일 수 있습니다.`
+    keywords.push('충', '차이 인정', '독립 공간')
+  }
+
+  return { interpretation, relationship, advice, keywords }
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -473,13 +694,44 @@ function analyzeDayBranchCompatibility(
 
 const ALL_ELEMENTS: FiveElement[] = ['wood', 'fire', 'earth', 'metal', 'water']
 
+/** fiveElements에서 오행 값을 안전하게 추출 (한글/영문 키 모두 지원) */
+function getElementValues(fiveElements: any): Record<string, number> {
+  const source = fiveElements?.weightedElements || fiveElements?.totalElements
+  if (!source) return { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 }
+
+  // 한글 키 → 영문 키 매핑
+  const koToEn: Record<string, string> = {
+    '木': 'wood', '火': 'fire', '土': 'earth', '金': 'metal', '水': 'water',
+  }
+
+  // 영문 키가 있으면 그대로, 한글 키가 있으면 변환
+  if (source.wood !== undefined) {
+    return {
+      wood: Number(source.wood) || 0,
+      fire: Number(source.fire) || 0,
+      earth: Number(source.earth) || 0,
+      metal: Number(source.metal) || 0,
+      water: Number(source.water) || 0,
+    }
+  }
+
+  // 한글 키
+  return {
+    wood: Number(source['木']) || 0,
+    fire: Number(source['火']) || 0,
+    earth: Number(source['土']) || 0,
+    metal: Number(source['金']) || 0,
+    water: Number(source['水']) || 0,
+  }
+}
+
 function analyzeElementBalance(
   person1: CalculateResult,
   person2: CalculateResult
 ): CompatibilityItem {
   const details: string[] = []
-  const c1 = person1.fiveElements.counts as FiveElementCount
-  const c2 = person2.fiveElements.counts as FiveElementCount
+  const c1 = getElementValues(person1.fiveElements)
+  const c2 = getElementValues(person2.fiveElements)
 
   // 개별 오행 합산
   const combined: Record<string, number> = {}
@@ -489,7 +741,7 @@ function analyzeElementBalance(
     total += combined[el]
   }
 
-  if (total === 0) {
+    if (total === 0) {
     return {
       category: '오행 균형 보완',
       score: 5,
@@ -497,6 +749,12 @@ function analyzeElementBalance(
       grade: 'C',
       description: '오행 데이터 부족',
       details: ['오행 정보가 불충분하여 정확한 분석이 어렵습니다.'],
+      detailedAnalysis: {
+        interpretation: '오행 데이터가 부족하여 상세 분석이 어렵습니다.',
+        relationship: '출생시간을 정확히 입력하면 더 정확한 분석이 가능합니다.',
+        advice: '출생시간을 확인하여 다시 분석해보세요.',
+        keywords: ['데이터 부족', '시간 확인', '재분석'],
+      },
     }
   }
 
@@ -543,6 +801,11 @@ function analyzeElementBalance(
     details.push('오행 편중이 심화될 수 있어 의식적인 보완이 필요합니다.')
   }
 
+    const detailedAnalysis = generateElementBalanceDetailed(
+    c1, c2, combined, total, balanceRatio, complementCount,
+    person1.dayStem.name, person2.dayStem.name, score
+  )
+
   return {
     category: '오행 균형 보완',
     score,
@@ -550,7 +813,62 @@ function analyzeElementBalance(
     grade: itemGrade(score, 10),
     description: `균형도 ${Math.round(balanceRatio * 100)}% / 보충 ${complementCount}건`,
     details,
+    detailedAnalysis,
   }
+}
+
+function generateElementBalanceDetailed(
+  c1: Record<string, number>, c2: Record<string, number>,
+  combined: Record<string, number>, total: number,
+  balanceRatio: number, complementCount: number,
+  name1: string, name2: string, score: number
+): CompatibilityItem['detailedAnalysis'] {
+  const balancePct = Math.round(balanceRatio * 100)
+
+  // 최다/최소 오행 찾기
+  let maxEl = 'wood', minEl = 'wood'
+  for (const el of ALL_ELEMENTS) {
+    if (combined[el] > combined[maxEl]) maxEl = el
+    if (combined[el] < combined[minEl]) minEl = el
+  }
+
+  const maxKo = ELEMENT_KO[maxEl]
+  const minKo = ELEMENT_KO[minEl]
+
+  let interpretation = ''
+  let relationship = ''
+  let advice = ''
+  const keywords: string[] = []
+
+  if (balancePct >= 75) {
+    interpretation = `두 사람의 오행을 합산하면 균형도가 ${balancePct}%로 매우 뛰어납니다. 한쪽에 치우침 없이 오행이 고르게 분포되어, 함께하면 운의 흐름이 안정적입니다. 특히 ${maxKo} 기운이 풍부하여 공동 활동에서 힘을 발휘합니다.`
+    keywords.push('고른 균형', '시너지', '안정')
+  } else if (balancePct >= 50) {
+    interpretation = `두 사람의 합산 오행 균형도가 ${balancePct}%로 무난한 수준입니다. ${maxKo} 기운이 다소 강하고 ${minKo} 기운이 약한 편이지만, 일상에 큰 지장은 없는 조합입니다.`
+    keywords.push('무난', maxKo + ' 강세', minKo + ' 보충')
+  } else {
+    interpretation = `합산 오행 균형도가 ${balancePct}%로 다소 편중된 조합입니다. ${maxKo}에 집중되고 ${minKo}이 부족하여, 함께할 때 특정 분야에서만 강점을 보이고 다른 분야가 약해질 수 있습니다.`
+    keywords.push('편중', minKo + ' 부족', '의식적 보완')
+  }
+
+  if (complementCount > 0) {
+    relationship = `${complementCount}개 오행에서 서로의 빈자리를 채워주는 보완 관계입니다. 한쪽에 없는 오행을 상대가 가지고 있어, 함께하면 더 완전해집니다.`
+  } else {
+    relationship = `오행 보충 관계는 없지만, 전체적인 분포로 보면 함께하는 것이 각자보다 나은 균형을 만들어냅니다.`
+  }
+
+  const weakElKo = ELEMENT_KO[minEl]
+  const elActivity: Record<string, string> = {
+    '木': '산책, 등산, 정원 가꾸기 등 자연 속 활동',
+    '火': '운동, 요리, 캠프파이어 등 열정적 활동',
+    '土': '도예, 텃밭 가꾸기, 명상 등 안정적 활동',
+    '金': '악기 연주, 공예, 헬스 등 단련 활동',
+    '水': '수영, 여행, 독서 등 유연한 활동',
+  }
+
+  advice = `부족한 ${weakElKo} 기운을 함께 보충하세요. ${elActivity[weakElKo] || '관련 활동'}을 함께하면 오행 균형이 개선됩니다.`
+
+  return { interpretation, relationship, advice, keywords: keywords.slice(0, 3) }
 }
 
 // ═══════════════════════════════════════════════════════════

@@ -148,3 +148,12 @@ export type {
   StrengthText,
   DailyFortuneText,
 } from './saju/interpretations'
+
+// ─── 궁합(宮合) ─────────────────────────────────────────
+export { analyzeCompatibility } from './saju/compatibility'
+
+export type {
+  CompatibilityGrade,
+  CompatibilityItem,
+  CompatibilityResult,
+} from './saju/compatibility'
